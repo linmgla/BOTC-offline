@@ -79,15 +79,6 @@
             border-left: 4px solid #f5c6cb;
         }
         
-        .local-data-note {
-            background: #d1ecf1;
-            color: #0c5460;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border-left: 4px solid #bee5eb;
-        }
-        
         .filters-container {
             background: white;
             border-radius: 10px;
@@ -240,13 +231,6 @@
             min-height: 120px;
         }
         
-        .no-events {
-            background: #f8f9fa;
-            color: #adb5bd;
-            font-style: italic;
-            cursor: default;
-        }
-        
         .no-events-message {
             text-align: center;
             padding: 40px 20px;
@@ -270,45 +254,12 @@
             display: flex;
             gap: 10px;
             align-items: center;
-            flex-wrap: wrap;
         }
         
         .indicator-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-        }
-        
-        .update-info {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #6c757d;
-            text-align: right;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .refresh-btn {
-            background: #4dabf7;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .refresh-btn:hover {
-            background: #3d9be8;
-        }
-        
-        .refresh-btn:disabled {
-            background: #adb5bd;
-            cursor: not-allowed;
         }
         
         .instructions {
@@ -340,30 +291,31 @@
             margin-top: 10px;
             font-size: 14px;
             color: #1864ab;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .data-source-selector {
-            margin: 15px 0;
-            padding: 10px;
-            background: #f8f9fa;
+        .refresh-btn {
+            background: #4dabf7;
+            color: white;
+            border: none;
+            padding: 8px 16px;
             border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
-        .source-option {
-            margin-right: 15px;
+        .refresh-btn:hover {
+            background: #3d9be8;
         }
         
-        .debug-info {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-size: 12px;
-            color: #6c757d;
-            display: none;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-break: break-all;
+        .refresh-btn:disabled {
+            background: #adb5bd;
+            cursor: not-allowed;
         }
         
         @media (max-width: 1200px) {
@@ -398,10 +350,10 @@
                 align-items: flex-start;
             }
             
-            .update-info {
+            .data-info {
                 flex-direction: column;
                 gap: 10px;
-                align-items: flex-start;
+                align-items: stretch;
             }
         }
         
@@ -424,37 +376,27 @@
     <div class="container">
         <header>
             <h1>🎭 血染鐘樓活動行事曆</h1>
-            <div class="subtitle">即時更新，隨時掌握最新開團資訊</div>
+            <div class="subtitle">隨時掌握最新開團資訊</div>
         </header>
         
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <div>正在載入活動資料...</div>
+            <div>正在從Google Sheets載入活動資料...</div>
         </div>
         
         <div id="errorContainer" class="error-message" style="display: none;"></div>
         
-        <div id="localDataNote" class="local-data-note" style="display: none;">
-            <strong>⚠️ 注意：</strong>由於CORS限制，目前使用本地示範資料。上傳到GitHub Pages後將自動從Google Sheets載入。
-        </div>
-        
         <div id="content" style="display: none;">
-            <div class="data-source-selector">
-                <label class="source-option">
-                    <input type="radio" name="dataSource" value="local" checked> 使用本地示範資料
-                </label>
-                <label class="source-option">
-                    <input type="radio" name="dataSource" value="google"> 從Google Sheets載入
-                </label>
-            </div>
-            
             <div class="data-info">
-                📊 資料來源：<span id="dataSourceInfo">本地示範資料</span> | 
-                總活動數：<span id="totalEvents">0</span> | 
-                地點數：<span id="totalLocations">0</span>
+                <div>
+                    📊 資料來源：Google Sheets | 
+                    活動數：<span id="totalEvents">0</span> | 
+                    地點數：<span id="totalLocations">0</span>
+                </div>
+                <button id="refreshBtn" class="refresh-btn">
+                    🔄 重新整理
+                </button>
             </div>
-            
-            <div class="debug-info" id="debugInfo"></div>
             
             <div class="filters-container">
                 <div class="filters" id="filters">
@@ -464,15 +406,6 @@
             </div>
             
             <div class="calendar-container">
-                <div class="update-info">
-                    <div>
-                        最後更新時間：<span id="lastUpdate">-</span>
-                    </div>
-                    <button id="refreshBtn" class="refresh-btn">
-                        🔄 重新整理
-                    </button>
-                </div>
-                
                 <div class="calendar-grid" id="calendarGrid">
                     <!-- 星期表頭和日曆內容會由JavaScript生成 -->
                 </div>
@@ -496,442 +429,236 @@
                     <li>按鈕顏色變淡表示該地點活動已隱藏</li>
                     <li>點擊活動可直接打開報名連結</li>
                     <li>活動時間均為24小時制</li>
-                    <li>選擇「從Google Sheets載入」以獲取最新資料（需部署到網站）</li>
+                    <li>點擊重新整理按鈕可更新最新資料</li>
                 </ul>
             </div>
         </div>
     </div>
 
     <script>
-        // 本地示範資料
-        const LOCAL_EVENT_DATA = [
-            {
-                date: "2026-12-01",
-                time: "22:00:00",
-                location: "歪常研究院",
-                script: "舊詩歌集",
-                link: "https://docs.google.com/forms/d/e/1FAIpQLScR5f2yY5J1gW7m3XKjYHwH8v9bNzL0pQ/viewform"
-            },
-            {
-                date: "2026-12-02",
-                time: "20:00:00",
-                location: "101鐘樓",
-                script: "睦鄰友好",
-                link: "https://docs.google.com/forms/d/e/1FAIpQLScR5f2yY5J1gW7m3XKjYHwH8v9bNzL0pQ/viewform"
-            },
-            {
-                date: "2026-12-02",
-                time: "20:00:00",
-                location: "歪常研究院",
-                script: "白月無疆",
-                link: "https://docs.google.com/forms/d/e/1FAIpQLScR5f2yY5J1gW7m3XKjYHwH8v9bNzL0pQ/viewform"
-            },
-            {
-                date: "2026-12-04",
-                time: "20:00:00",
-                location: "歪常研究院",
-                script: "暗流湧動",
-                link: "https://docs.google.com/forms/d/e/1FAIpQLScR5f2yY5J1gW7m3XKjYHwH8v9bNzL0pQ/viewform"
-            },
-            {
-                date: "2026-12-04",
-                time: "20:00:00",
-                location: "小怪寶家長會",
-                script: "畢業典禮",
-                link: "https://docs.google.com/forms/d/e/1FAIpQLScR5f2yY5J1gW7m3XKjYHwH8v9bNzL0pQ/viewform"
-            },
-            {
-                date: "2026-12-08",
-                time: "21:00:00",
-                location: "101鐘樓",
-                script: "普卡單惡魔",
-                link: "https://docs.google.com/forms/d/e/1FAIpQLScR5f2yY5J1gW7m3XKjYHwH8v9bNzL0pQ/viewform"
-            }
-        ];
-        
-        // 測試用 Google Sheets 連結（公開可存取）
-        const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT8GSdmGL5ggYr0ADz2fwltf9mBgv-77ggRneKQOBnebWG9HGOwsqpbhn5wpYgrezLHUNwIxi1ACm5r/pub?gid=0&single=true&output=csv';
-        
-        // 備用連結（如果上述連結無效）
-        const BACKUP_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1J5t4RwR5b5wM9yL5z5q5b5wM9yL5z5q5b5wM9yL5z5q5/edit?usp=sharing&output=csv';
-        
-        // 預設地點顏色配置
-        const DEFAULT_LOCATION_CONFIG = {
-            "101鐘樓": {
-                color: "#4dabf7",
-                bgColor: "#e7f5ff",
-                borderColor: "#4dabf7",
-                hiddenColor: "#f0f8ff",
-                hiddenBorder: "#a5d8ff"
-            },
-            "歪常研究院": {
-                color: "#da77f2",
-                bgColor: "#f8f0fc",
-                borderColor: "#da77f2",
-                hiddenColor: "#fdf2ff",
-                hiddenBorder: "#e599f7"
-            },
-            "小怪寶家長會": {
-                color: "#69db7c",
-                bgColor: "#ebfbee",
-                borderColor: "#69db7c",
-                hiddenColor: "#f4fcf5",
-                hiddenBorder: "#b2f2bb"
+        // ============================================
+        // 配置設定
+        // ============================================
+        const CONFIG = {
+            // 您的 Google Sheets 公開連結
+            // 請按照以下步驟獲取：
+            // 1. 將您的 Excel 檔案上傳到 Google Sheets
+            // 2. 點擊「檔案」→「發佈到網路」
+            // 3. 選擇「整個文件」和「網頁」
+            // 4. 複製連結，然後將 export?format=xlsx 改為 export?format=csv
+            googleSheetsURL: 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv',
+            
+            // 備用示範資料（如果 Google Sheets 無法載入）
+            demoEvents: [
+                {
+                    date: "2026-12-01",
+                    time: "22:00:00",
+                    location: "歪常研究院",
+                    script: "舊詩歌集",
+                    link: "https://docs.google.com/document/u/0/"
+                },
+                {
+                    date: "2026-12-02",
+                    time: "20:00:00",
+                    location: "101鐘樓",
+                    script: "睦鄰友好",
+                    link: "https://docs.google.com/document/u/0/"
+                }
+            ],
+            
+            // 預設地點顏色
+            locationColors: {
+                "101鐘樓": {
+                    color: "#4dabf7",
+                    bgColor: "#e7f5ff",
+                    borderColor: "#4dabf7",
+                    hiddenColor: "#f0f8ff",
+                    hiddenBorder: "#a5d8ff"
+                },
+                "歪常研究院": {
+                    color: "#da77f2",
+                    bgColor: "#f8f0fc",
+                    borderColor: "#da77f2",
+                    hiddenColor: "#fdf2ff",
+                    hiddenBorder: "#e599f7"
+                }
             }
         };
         
-        // 全局變數
-        let locationConfig = {...DEFAULT_LOCATION_CONFIG};
+        // ============================================
+        // 全域變數
+        // ============================================
         let eventData = [];
+        let locationConfig = { ...CONFIG.locationColors };
         let hiddenLocations = new Set();
-        let lastUpdateTime = null;
         let isLoading = false;
-        let currentDataSource = 'local';
         
-        // 除錯函數
-        function logDebug(message) {
-            console.log('[DEBUG]', message);
-            const debugInfo = document.getElementById('debugInfo');
-            debugInfo.textContent += message + '\n';
-            debugInfo.style.display = 'block';
-        }
-        
+        // ============================================
         // 初始化函數
+        // ============================================
         async function init() {
-            logDebug('初始化開始...');
+            console.log('開始初始化...');
             
-            // 設置資料來源選擇器
-            setupDataSourceSelector();
+            // 嘗試從 Google Sheets 載入資料
+            try {
+                await loadDataFromGoogleSheets();
+            } catch (error) {
+                console.error('從 Google Sheets 載入失敗，使用示範資料:', error);
+                await loadDemoData();
+            }
             
-            // 載入本地資料作為初始顯示
-            await loadLocalData();
-            
-            // 隱藏載入畫面，顯示內容
+            // 初始化介面
             hideLoading();
             showContent();
-            
-            // 更新介面
-            updateDataInfo();
             generateFilterButtons();
             generateCalendar();
             updateStatusBar();
             setupRefreshButton();
             
-            logDebug(`初始化完成，載入活動數: ${eventData.length}`);
-            
-            // 檢查是否為線上環境
-            const isOnline = window.location.protocol.startsWith('http') && !window.location.hostname.includes('localhost');
-            
-            if (isOnline) {
-                logDebug('檢測到線上環境，嘗試從Google Sheets載入資料...');
-                document.getElementById('localDataNote').style.display = 'none';
-                // 自動選擇Google Sheets選項
-                document.querySelector('input[value="google"]').checked = true;
-                changeDataSource('google');
-            } else {
-                document.getElementById('localDataNote').style.display = 'block';
-            }
+            console.log('初始化完成，載入活動數:', eventData.length);
         }
         
-        // 設置資料來源選擇器
-        function setupDataSourceSelector() {
-            const radios = document.querySelectorAll('input[name="dataSource"]');
-            radios.forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    changeDataSource(e.target.value);
-                });
-            });
-        }
-        
-        // 切換資料來源
-        async function changeDataSource(source) {
-            if (source === currentDataSource) return;
-            
-            currentDataSource = source;
-            document.getElementById('dataSourceInfo').textContent = 
-                source === 'local' ? '本地示範資料' : 'Google Sheets';
-            
-            try {
-                // 顯示載入畫面
-                document.getElementById('loading').style.display = 'flex';
-                document.getElementById('content').style.display = 'none';
-                document.getElementById('debugInfo').textContent = '';
-                
-                if (source === 'local') {
-                    await loadLocalData();
-                } else {
-                    await loadDataFromGoogleSheet();
-                }
-                
-                // 隱藏載入畫面，顯示內容
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                
-                // 更新介面
-                updateDataInfo();
-                generateFilterButtons();
-                generateCalendar();
-                updateStatusBar();
-                
-            } catch (error) {
-                console.error('切換資料來源失敗:', error);
-                showError(`載入${source === 'local' ? '本地' : 'Google Sheets'}資料失敗: ${error.message}`);
-                
-                // 切回原資料來源
-                const fallbackSource = source === 'local' ? 'google' : 'local';
-                document.querySelector(`input[value="${fallbackSource}"]`).checked = true;
-                currentDataSource = fallbackSource;
-                
-                // 隱藏載入畫面，顯示內容
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                
-                // 如果是從Google Sheets載入失敗，切回本地資料
-                if (source === 'google') {
-                    await loadLocalData();
-                    updateDataInfo();
-                    generateFilterButtons();
-                    generateCalendar();
-                    updateStatusBar();
-                }
-            }
-        }
-        
-        // 載入本地資料
-        async function loadLocalData() {
-            eventData = [...LOCAL_EVENT_DATA];
-            locationConfig = {...DEFAULT_LOCATION_CONFIG};
-            
-            // 按日期排序
-            eventData.sort((a, b) => {
-                const dateA = new Date(a.date);
-                const dateB = new Date(b.date);
-                return dateA - dateB;
-            });
-            
-            // 更新時間戳
-            lastUpdateTime = new Date();
-            document.getElementById('lastUpdate').textContent = 
-                lastUpdateTime.toLocaleString('zh-TW');
-            
-            logDebug(`載入 ${eventData.length} 筆本地示範資料`);
-        }
-        
-        // 從Google Sheet載入資料
-        async function loadDataFromGoogleSheet() {
+        // ============================================
+        // 資料載入函數
+        // ============================================
+        async function loadDataFromGoogleSheets() {
             if (isLoading) return;
-            
             isLoading = true;
-            logDebug('開始嘗試從Google Sheets載入...');
             
             try {
-                // 測試連結是否可存取
-                logDebug(`嘗試存取: ${GOOGLE_SHEET_URL}`);
+                console.log('嘗試從 Google Sheets 載入資料...');
                 
-                // 方法1: 直接嘗試fetch（可能需要CORS代理）
-                let response;
-                try {
-                    // 先嘗試直接存取（如果Google Sheets有設定CORS）
-                    response = await fetch(GOOGLE_SHEET_URL, {
-                        headers: {
-                            'Accept': 'text/csv',
-                            'Cache-Control': 'no-cache'
-                        }
-                    });
-                    logDebug(`直接fetch狀態: ${response.status}`);
-                } catch (fetchError) {
-                    logDebug(`直接fetch失敗: ${fetchError.message}`);
-                    
-                    // 方法2: 使用CORS代理
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(GOOGLE_SHEET_URL)}`;
-                    logDebug(`嘗試CORS代理: ${proxyUrl}`);
-                    
-                    const proxyResponse = await fetch(proxyUrl);
-                    logDebug(`CORS代理狀態: ${proxyResponse.status}`);
-                    
-                    if (proxyResponse.ok) {
-                        const proxyData = await proxyResponse.json();
-                        response = {
-                            ok: true,
-                            text: () => Promise.resolve(proxyData.contents)
-                        };
-                    } else {
-                        throw new Error('CORS代理也失敗');
-                    }
-                }
+                // 使用 CORS 代理繞過限制
+                const proxyURL = `https://api.allorigins.win/get?url=${encodeURIComponent(CONFIG.googleSheetsURL)}`;
+                
+                const response = await fetch(proxyURL);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP錯誤: ${response.status}`);
+                    throw new Error(`HTTP 錯誤: ${response.status}`);
                 }
                 
-                const csvText = await response.text();
-                logDebug(`收到CSV資料，長度: ${csvText.length}`);
-                logDebug(`CSV前200字元: ${csvText.substring(0, 200)}`);
+                const data = await response.json();
+                const csvText = data.contents;
+                
+                console.log('收到 CSV 資料，長度:', csvText.length);
                 
                 // 解析 CSV
                 const parsedData = parseCSV(csvText);
-                logDebug(`解析出 ${parsedData.length} 筆活動`);
                 
                 if (parsedData.length > 0) {
                     eventData = parsedData;
-                    logDebug(`成功載入 ${eventData.length} 筆活動資料`);
+                    console.log(`成功載入 ${eventData.length} 筆活動`);
                 } else {
-                    logDebug('CSV解析後沒有資料，使用本地資料');
-                    await loadLocalData();
+                    throw new Error('CSV 解析後沒有資料');
                 }
                 
-                // 更新時間戳
-                lastUpdateTime = new Date();
-                document.getElementById('lastUpdate').textContent = 
-                    lastUpdateTime.toLocaleString('zh-TW');
-                
             } catch (error) {
-                logDebug(`載入失敗: ${error.message}`);
-                console.error('載入Google Sheet資料時發生錯誤:', error);
-                
-                // 降級到本地資料
-                logDebug('降級到本地示範資料');
-                await loadLocalData();
-                
-                // 顯示錯誤訊息
-                showError('無法從Google Sheets載入資料，已使用本地示範資料');
+                console.error('載入失敗:', error);
+                throw error; // 讓上層函數處理
             } finally {
                 isLoading = false;
             }
         }
         
-        // 解析 CSV
+        async function loadDemoData() {
+            console.log('載入示範資料...');
+            eventData = [...CONFIG.demoEvents];
+            locationConfig = { ...CONFIG.locationColors };
+            
+            // 為新地點動態生成顏色
+            eventData.forEach(event => {
+                if (event.location && !locationConfig[event.location]) {
+                    locationConfig[event.location] = generateLocationColor(event.location);
+                }
+            });
+        }
+        
         function parseCSV(csvText) {
             const events = [];
             const lines = csvText.split('\n').filter(line => line.trim() !== '');
             
-            logDebug(`CSV總行數: ${lines.length}`);
+            console.log('CSV 總行數:', lines.length);
             
             if (lines.length < 2) {
-                logDebug('CSV行數不足，可能沒有資料');
+                console.log('CSV 行數不足，可能沒有資料');
                 return events;
             }
             
-            // 顯示標頭
-            logDebug(`CSV標頭: ${lines[0]}`);
+            // 顯示標題行以了解格式
+            console.log('CSV 標題行:', lines[0]);
             
-            // 假設 CSV 格式可能是多種形式
+            // 從第二行開始（跳過標題行）
             for (let i = 1; i < lines.length; i++) {
                 try {
                     const line = lines[i].trim();
                     if (!line) continue;
                     
-                    logDebug(`處理第 ${i} 行: ${line.substring(0, 50)}...`);
+                    // 處理 CSV 中的引號和逗號
+                    const parts = [];
+                    let currentPart = '';
+                    let inQuotes = false;
                     
-                    // 嘗試不同的分隔符號
-                    let parts;
-                    if (line.includes(',') && line.split(',').length >= 5) {
-                        parts = line.split(',').map(part => part.trim());
-                    } else if (line.includes('\t') && line.split('\t').length >= 5) {
-                        parts = line.split('\t').map(part => part.trim());
-                    } else {
-                        logDebug(`第 ${i} 行格式不支援，跳過`);
-                        continue;
-                    }
-                    
-                    if (parts.length >= 5) {
-                        // 嘗試不同的欄位順序
-                        let date, time, location, script, link;
+                    for (let j = 0; j < line.length; j++) {
+                        const char = line[j];
                         
-                        // 檢查每個欄位
-                        for (let j = 0; j < parts.length; j++) {
-                            const part = parts[j];
-                            
-                            // 判斷是否是日期 (包含/或-)
-                            if ((part.includes('/') || part.includes('-')) && !date) {
-                                date = part;
-                            }
-                            // 判斷是否是時間 (包含:)
-                            else if (part.includes(':') && !time) {
-                                time = part;
-                            }
-                            // 判斷是否是連結 (包含http)
-                            else if (part.includes('http') && !link) {
-                                link = part;
-                            }
-                            // 判斷是否是地點 (假設是較短的字串)
-                            else if (part.length <= 20 && !location) {
-                                location = part;
-                            }
-                            // 剩下的當作劇本名稱
-                            else if (!script) {
-                                script = part;
-                            }
-                        }
-                        
-                        // 如果沒有正確識別，使用預設順序
-                        if (!date || !time || !location || !script || !link) {
-                            date = parts[0] || '';
-                            time = parts[1] || '';
-                            location = parts[2] || '';
-                            script = parts[3] || '';
-                            link = parts[4] || '';
-                        }
-                        
-                        // 驗證必要欄位
-                        if (date && time && location && script && link) {
-                            // 格式化日期
-                            let formattedDate;
-                            try {
-                                // 移除時間部分
-                                const dateOnly = date.split(' ')[0];
-                                
-                                // 嘗試解析日期
-                                const dateObj = new Date(dateOnly);
-                                if (!isNaN(dateObj.getTime())) {
-                                    formattedDate = dateObj.toISOString().split('T')[0];
-                                } else {
-                                    // 嘗試手動解析
-                                    const dateMatch = dateOnly.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/) || 
-                                                     dateOnly.match(/(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-                                    
-                                    if (dateMatch) {
-                                        if (dateMatch[1].length === 4) {
-                                            // YYYY-MM-DD
-                                            formattedDate = `${dateMatch[1]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[3].padStart(2, '0')}`;
-                                        } else {
-                                            // DD-MM-YYYY
-                                            formattedDate = `${dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
-                                        }
-                                    } else {
-                                        logDebug(`無法解析日期: ${date}`);
-                                        continue;
-                                    }
-                                }
-                            } catch (e) {
-                                logDebug(`日期解析錯誤: ${date}, ${e.message}`);
-                                continue;
-                            }
-                            
-                            // 格式化時間
-                            const formattedTime = time.split(' ')[0];
-                            
-                            events.push({
-                                date: formattedDate,
-                                time: formattedTime,
-                                location: location,
-                                script: script,
-                                link: link
-                            });
-                            
-                            logDebug(`成功解析活動: ${formattedDate} ${formattedTime} ${location} ${script}`);
-                            
-                            // 動態建立地點顏色配置
-                            if (location && !locationConfig[location]) {
-                                locationConfig[location] = generateLocationColor(location);
-                                logDebug(`新增地點: ${location}`);
-                            }
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            parts.push(currentPart.trim());
+                            currentPart = '';
                         } else {
-                            logDebug(`欄位不完整，跳過: date=${date}, time=${time}, location=${location}, script=${script}, link=${link}`);
+                            currentPart += char;
+                        }
+                    }
+                    parts.push(currentPart.trim());
+                    
+                    // 根據您的 Excel 檔案格式：
+                    // 日期, 時間, 地點, 劇本名稱, 報名連結
+                    if (parts.length >= 5) {
+                        const date = parts[0];
+                        const time = parts[1];
+                        const location = parts[2];
+                        const script = parts[3];
+                        const link = parts[4];
+                        
+                        // 格式化日期
+                        let formattedDate;
+                        try {
+                            // 移除時間部分（如果有）
+                            const dateOnly = date.split(' ')[0];
+                            const dateObj = new Date(dateOnly);
+                            
+                            if (!isNaN(dateObj.getTime())) {
+                                formattedDate = dateObj.toISOString().split('T')[0];
+                            } else {
+                                // 嘗試其他格式
+                                formattedDate = dateOnly.replace(/\//g, '-');
+                            }
+                        } catch (e) {
+                            console.warn('日期解析錯誤:', date, e);
+                            continue;
+                        }
+                        
+                        // 格式化時間
+                        const formattedTime = time.split(' ')[0];
+                        
+                        events.push({
+                            date: formattedDate,
+                            time: formattedTime,
+                            location: location,
+                            script: script,
+                            link: link
+                        });
+                        
+                        console.log(`解析活動: ${formattedDate} ${formattedTime} ${location} ${script}`);
+                        
+                        // 動態建立地點顏色配置
+                        if (location && !locationConfig[location]) {
+                            locationConfig[location] = generateLocationColor(location);
                         }
                     }
                 } catch (e) {
-                    logDebug(`解析第 ${i} 行時出錯: ${e.message}`);
+                    console.warn('解析 CSV 行時出錯:', e, lines[i]);
                 }
             }
             
@@ -949,7 +676,6 @@
             return events;
         }
         
-        // 為新地點生成顏色
         function generateLocationColor(locationName) {
             let hash = 0;
             for (let i = 0; i < locationName.length; i++) {
@@ -967,7 +693,9 @@
             };
         }
         
-        // 顯示/隱藏介面元素
+        // ============================================
+        // UI 控制函數
+        // ============================================
         function hideLoading() {
             document.getElementById('loading').style.display = 'none';
         }
@@ -981,19 +709,11 @@
             errorContainer.textContent = '❌ ' + message;
             errorContainer.style.display = 'block';
             
-            // 5秒後自動隱藏錯誤訊息
             setTimeout(() => {
                 errorContainer.style.display = 'none';
             }, 5000);
         }
         
-        // 更新資料統計資訊
-        function updateDataInfo() {
-            document.getElementById('totalEvents').textContent = eventData.length;
-            document.getElementById('totalLocations').textContent = Object.keys(locationConfig).length;
-        }
-        
-        // 設定重新整理按鈕
         function setupRefreshButton() {
             const refreshBtn = document.getElementById('refreshBtn');
             
@@ -1007,18 +727,12 @@
                     document.getElementById('loading').style.display = 'flex';
                     document.getElementById('content').style.display = 'none';
                     document.getElementById('errorContainer').style.display = 'none';
-                    document.getElementById('debugInfo').textContent = '';
                     
-                    if (currentDataSource === 'local') {
-                        await loadLocalData();
-                    } else {
-                        await loadDataFromGoogleSheet();
-                    }
+                    await loadDataFromGoogleSheets();
                     
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('content').style.display = 'block';
                     
-                    updateDataInfo();
                     generateFilterButtons();
                     generateCalendar();
                     updateStatusBar();
@@ -1034,13 +748,16 @@
             });
         }
         
-        // 生成篩選按鈕
         function generateFilterButtons() {
             const filtersContainer = document.getElementById('filters');
-            
             const label = filtersContainer.querySelector('.filter-label');
             filtersContainer.innerHTML = '';
+            
             if (label) filtersContainer.appendChild(label);
+            
+            // 更新資料統計
+            document.getElementById('totalEvents').textContent = eventData.length;
+            document.getElementById('totalLocations').textContent = Object.keys(locationConfig).length;
             
             const sortedLocations = Object.keys(locationConfig).sort();
             
@@ -1061,7 +778,6 @@
             });
         }
         
-        // 切換地點顯示/隱藏
         function toggleLocation(location) {
             if (hiddenLocations.has(location)) {
                 hiddenLocations.delete(location);
@@ -1074,7 +790,6 @@
             updateStatusBar();
         }
         
-        // 更新狀態欄
         function updateStatusBar() {
             const statusBar = document.getElementById('statusBar');
             const statusText = statusBar.querySelector('div:first-child');
@@ -1082,6 +797,7 @@
             const hiddenCount = hiddenLocations.size;
             const totalLocations = Object.keys(locationConfig).length;
             
+            // 更新狀態文字
             if (hiddenCount === 0) {
                 statusText.textContent = "顯示所有地點的活動";
                 statusBar.style.backgroundColor = "#e7f5ff";
@@ -1097,10 +813,10 @@
                 statusBar.style.color = "#856404";
             }
             
+            // 更新狀態指示器
             updateStatusIndicator(statusIndicator);
         }
         
-        // 更新狀態指示器
         function updateStatusIndicator(container) {
             container.innerHTML = '';
             
@@ -1123,15 +839,11 @@
                 container.appendChild(text);
                 
                 if (index < sortedLocations.length - 1) {
-                    const spacer = document.createElement('span');
-                    spacer.style.marginLeft = '10px';
-                    spacer.style.marginRight = '10px';
-                    container.appendChild(spacer);
+                    container.appendChild(document.createTextNode(' '));
                 }
             });
         }
         
-        // 生成日曆
         function generateCalendar() {
             const calendarGrid = document.getElementById('calendarGrid');
             const noEventsMessage = document.getElementById('noEvents');
@@ -1147,8 +859,8 @@
                 calendarGrid.appendChild(weekdayCell);
             });
             
-            // 建立日曆資料 (2026年12月)
-            const calendarData = createCalendarData(12, 2026);
+            // 建立日曆資料（2026年1月，根據您的資料）
+            const calendarData = createCalendarData(2026, 1);
             let hasVisibleEvents = false;
             
             calendarData.forEach(day => {
@@ -1228,7 +940,7 @@
                     
                     if (!hasVisibleDayEvents) {
                         const noEvent = document.createElement('div');
-                        noEvent.className = 'event no-events';
+                        noEvent.className = 'event';
                         noEvent.textContent = "暫無活動";
                         noEvent.style.backgroundColor = "#f8f9fa";
                         noEvent.style.color = "#adb5bd";
@@ -1241,6 +953,7 @@
                 calendarGrid.appendChild(dayCell);
             });
             
+            // 顯示/隱藏無活動訊息
             const totalLocations = Object.keys(locationConfig).length;
             if (!hasVisibleEvents && hiddenLocations.size > 0) {
                 noEventsMessage.style.display = 'block';
@@ -1254,13 +967,11 @@
             }
         }
         
-        // 獲取指定日期的活動
         function getEventsForDate(date) {
             return eventData.filter(event => event.date === date);
         }
         
-        // 建立日曆資料
-        function createCalendarData(month, year) {
+        function createCalendarData(year, month) {
             const calendarData = [];
             
             // 該月的第一天
@@ -1269,9 +980,6 @@
             const lastDay = new Date(year, month, 0);
             // 第一天是星期幾 (0 = 星期日)
             const firstDayOfWeek = firstDay.getDay();
-            
-            // 上個月的天數
-            const prevMonthLastDay = new Date(year, month - 1, 0).getDate();
             
             // 填充上個月的空白天數
             for (let i = 0; i < firstDayOfWeek; i++) {
@@ -1298,7 +1006,9 @@
             return calendarData;
         }
         
-        // 頁面載入完成後初始化
+        // ============================================
+        // 頁面載入
+        // ============================================
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
